@@ -1,0 +1,42 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# builds
+dist/
+build/
+.next/
+out/
+
+# env / secrets
+.env
+.env.local
+.env.*.local
+*.local
+
+# logs
+*.log
+npm-debug.log*
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# apps script local creds
+apps/appsscript/.clasp.json
+apps/appsscript/.clasprc.json
+
+# test / coverage
+coverage/
+
+# local tooling / indexer artifacts
+.code-review-graph/
+.codegraph/
+.swarm/
+.claude-flow/
+
+# typescript build info
+*.tsbuildinfo

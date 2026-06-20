@@ -1,0 +1,21 @@
+{
+  "name": "@teamos/core",
+  "version": "0.1.0",
+  "description": "TeamOS domain core: entities, repository interfaces, application services, RBAC, validation, and the AI advisory boundary. No data-source or framework coupling.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  }
+}

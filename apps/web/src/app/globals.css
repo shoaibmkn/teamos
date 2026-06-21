@@ -4,21 +4,23 @@
 
 @layer base {
   :root {
-    --bg: 248 250 252;
+    --bg: 245 246 251;
     --surface: 255 255 255;
-    --surface-2: 241 245 249;
-    --border: 226 232 240;
-    --text: 15 23 42;
-    --text-muted: 100 116 139;
+    --surface-2: 243 245 251;
+    --border: 230 232 241;
+    --text: 27 32 48;
+    --text-muted: 93 102 120;
+    --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.04);
   }
 
   .dark {
-    --bg: 9 12 20;
-    --surface: 17 22 34;
-    --surface-2: 25 32 47;
-    --border: 39 48 68;
-    --text: 226 232 240;
-    --text-muted: 148 163 184;
+    --bg: 11 14 22;
+    --surface: 20 26 39;
+    --surface-2: 27 34 51;
+    --border: 40 48 68;
+    --text: 232 236 246;
+    --text-muted: 154 164 186;
+    --shadow: none;
   }
 
   html,
@@ -35,9 +37,10 @@
 
 @layer components {
   .card {
-    @apply rounded-xl border shadow-sm;
+    @apply rounded-xl border;
     background-color: rgb(var(--surface));
     border-color: rgb(var(--border));
+    box-shadow: var(--shadow);
   }
 
   .muted {
@@ -45,22 +48,22 @@
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-brand-400/50 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-brand-500/40 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-primary {
-    @apply btn bg-brand-600 text-white hover:bg-brand-500;
+    @apply btn bg-brand-600 text-white hover:bg-brand-500 shadow-sm;
   }
 
   .btn-ghost {
     @apply btn border;
     border-color: rgb(var(--border));
-    background-color: rgb(var(--surface-2));
+    background-color: rgb(var(--surface));
     color: rgb(var(--text));
   }
 
   .input {
-    @apply w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-brand-400/40;
+    @apply w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-brand-500/30;
     background-color: rgb(var(--surface-2));
     border-color: rgb(var(--border));
     color: rgb(var(--text));

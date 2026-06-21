@@ -3,6 +3,7 @@ import { optionalContext } from '@/lib/server/context';
 import { MetricCard, SectionTitle, EmptyState } from '@/components/ui';
 import { TaskList } from '@/components/TaskList';
 import { AiSummaryPanel } from '@/components/client/AiSummaryPanel';
+import { CreateTaskForm } from '@/components/client/CreateTaskForm';
 import { periodLastDays } from '@/components/format';
 
 export const dynamic = 'force-dynamic';
@@ -15,12 +16,18 @@ export default async function ManagerPage() {
   const dash = await services.dashboards.manager(ctx);
   const period = periodLastDays(14);
   const reasons = Object.entries(dash.waitingReasons);
+  const team = (await services.users.listTeam(ctx))
+    .filter((u) => u.id !== user.id)
+    .map((u) => ({ id: u.id, displayName: u.displayName }));
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold">Team</h1>
-        <p className="text-sm muted">Review team state in minutes: delays, blockers, SLA risk, evidence gaps.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Team</h1>
+          <p className="text-sm muted">Review team state in minutes: delays, blockers, SLA risk, evidence gaps.</p>
+        </div>
+        <CreateTaskForm team={team} />
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

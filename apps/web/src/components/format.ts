@@ -1,49 +1,100 @@
-// Pure formatting and style-mapping helpers shared across server and client
-// components. No side effects, no hooks.
+// Pure formatting, sorting, and style-mapping helpers shared across server and
+// client components. No side effects, no hooks. Colors use Tailwind shades that
+// read in both light and dark themes.
 
-import type { Priority, RiskSignal, TaskStatus } from '@teamos/core';
+import type { Priority, RiskSignal, Task, TaskStatus } from '@teamos/core';
 
 export function statusBadgeClass(status: TaskStatus): string {
   switch (status) {
     case 'Completed':
-      return 'bg-emerald-500/15 text-emerald-400';
+      return 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400';
     case 'Cancelled':
-      return 'bg-slate-500/15 text-slate-400';
+      return 'bg-slate-500/15 text-slate-500 dark:text-slate-400';
     case 'In Progress':
-      return 'bg-brand-500/15 text-brand-300';
+      return 'bg-blue-500/15 text-blue-600 dark:text-blue-400';
     case 'Review':
-      return 'bg-violet-500/15 text-violet-300';
+      return 'bg-violet-500/15 text-violet-600 dark:text-violet-400';
     case 'Waiting Internal':
     case 'Waiting External':
-      return 'bg-amber-500/15 text-amber-300';
+      return 'bg-amber-500/15 text-amber-600 dark:text-amber-400';
     case 'Assigned':
-      return 'bg-sky-500/15 text-sky-300';
+      return 'bg-sky-500/15 text-sky-600 dark:text-sky-400';
     default:
-      return 'bg-slate-500/15 text-slate-400';
+      return 'bg-slate-500/15 text-slate-500 dark:text-slate-400';
+  }
+}
+
+/** Solid color for a status dot / accent. */
+export function statusDot(status: TaskStatus): string {
+  switch (status) {
+    case 'Completed':
+      return '#10b981';
+    case 'In Progress':
+      return '#3b82f6';
+    case 'Review':
+      return '#8b5cf6';
+    case 'Waiting Internal':
+    case 'Waiting External':
+      return '#f59e0b';
+    case 'Assigned':
+      return '#0ea5e9';
+    default:
+      return '#94a3b8';
   }
 }
 
 export function priorityClass(priority: Priority): string {
   switch (priority) {
     case 'Critical':
-      return 'text-red-400';
+      return 'text-red-600 dark:text-red-400';
     case 'High':
-      return 'text-amber-400';
+      return 'text-amber-600 dark:text-amber-400';
     case 'Normal':
-      return 'text-sky-400';
+      return 'text-brand-600 dark:text-brand-400';
     default:
-      return 'text-slate-400';
+      return 'text-slate-500 dark:text-slate-400';
   }
+}
+
+/** Solid color for the priority accent bar. */
+export function priorityColor(priority: Priority): string {
+  switch (priority) {
+    case 'Critical':
+      return '#e5484d';
+    case 'High':
+      return '#ef8b1b';
+    case 'Normal':
+      return '#6366f1';
+    default:
+      return '#94a3b8';
+  }
+}
+
+const PRIORITY_RANK: Record<Priority, number> = { Critical: 3, High: 2, Normal: 1, Low: 0 };
+
+export function priorityRank(priority: Priority): number {
+  return PRIORITY_RANK[priority];
+}
+
+/** Sort highest priority first; tie-break by soonest due date (undefined last). */
+export function sortByPriority(tasks: Task[]): Task[] {
+  return [...tasks].sort((a, b) => {
+    const byPriority = priorityRank(b.priority) - priorityRank(a.priority);
+    if (byPriority !== 0) return byPriority;
+    const da = a.dueAt ? Date.parse(a.dueAt) : Number.POSITIVE_INFINITY;
+    const db = b.dueAt ? Date.parse(b.dueAt) : Number.POSITIVE_INFINITY;
+    return da - db;
+  });
 }
 
 export function riskClass(severity: RiskSignal['severity']): string {
   switch (severity) {
     case 'high':
-      return 'bg-red-500/15 text-red-300 border-red-500/30';
+      return 'bg-red-500/15 text-red-600 dark:text-red-300 border-red-500/30';
     case 'medium':
-      return 'bg-amber-500/15 text-amber-300 border-amber-500/30';
+      return 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/30';
     default:
-      return 'bg-sky-500/15 text-sky-300 border-sky-500/30';
+      return 'bg-sky-500/15 text-sky-600 dark:text-sky-300 border-sky-500/30';
   }
 }
 

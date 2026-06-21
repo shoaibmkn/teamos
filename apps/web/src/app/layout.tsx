@@ -15,16 +15,15 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-// Set the theme class before paint to avoid a flash; default to dark (PWA requirement).
+// Set the theme class before paint to avoid a flash. Default to light; users
+// can switch to dark and the choice persists.
 const themeBootstrap = `
 (function () {
   try {
     var stored = localStorage.getItem('teamos-theme');
-    var dark = stored ? stored === 'dark' : true;
+    var dark = stored ? stored === 'dark' : false;
     document.documentElement.classList.toggle('dark', dark);
-  } catch (e) {
-    document.documentElement.classList.add('dark');
-  }
+  } catch (e) {}
 })();
 `;
 
@@ -38,7 +37,7 @@ if ('serviceWorker' in navigator) {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>

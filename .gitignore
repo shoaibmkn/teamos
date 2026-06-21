@@ -40,3 +40,6 @@ coverage/
 
 # typescript build info
 *.tsbuildinfo
+
+# local-only explainer (not a product asset)
+apps/web/public/walkthrough.html

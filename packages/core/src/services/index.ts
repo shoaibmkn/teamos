@@ -38,7 +38,7 @@ export function createServices(deps: ServicesDeps): Services {
   const { repos, ai, config } = deps;
 
   return {
-    users: new UserService(repos.users, config.allowedDomains),
+    users: new UserService(repos.users, config.allowedDomains, repos.activity, clock),
     tasks: new TaskService(repos.tasks, repos.users, repos.evidence, repos.activity, clock),
     evidence: new EvidenceService(repos.evidence, repos.tasks, repos.activity, clock),
     workflows: new WorkflowService(

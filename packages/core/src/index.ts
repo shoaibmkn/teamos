@@ -56,7 +56,7 @@ export type {
   Bottleneck,
 } from './services/dashboardService';
 export type { GenerateSummaryInput, GeneratedSummary } from './services/aiService';
-export type { MeResponse } from './services/userService';
+export type { MeResponse, CreateUserInput, UpdateUserInput } from './services/userService';
 
 // AI providers
 export type { AiProvider, AiSummaryInput, AiSummaryOutput, RiskSignal, AiTaskSnapshot } from './ai/provider';

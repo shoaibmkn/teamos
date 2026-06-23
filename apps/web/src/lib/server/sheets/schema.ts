@@ -14,6 +14,7 @@ export const SHEET_COLUMNS = {
   Subtasks: ['id', 'taskId', 'title', 'done', 'order', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy'],
   TaskMessages: ['id', 'taskId', 'authorUserId', 'text', 'createdAt'],
   DayLogs: ['id', 'userId', 'date', 'checkInAt', 'checkOutAt', 'checkInNote', 'checkOutNote', 'createdAt'],
+  Notifications: ['id', 'userId', 'type', 'title', 'taskId', 'actorUserId', 'read', 'createdAt'],
 } as const;
 
 export type SheetName = keyof typeof SHEET_COLUMNS;
@@ -24,4 +25,4 @@ export const SHEET_NAMES = Object.keys(SHEET_COLUMNS) as SheetName[];
 export const NUMERIC_FIELDS = new Set(['version', 'order', 'slaHours']);
 
 /** Boolean fields stored as 'true' / 'false' strings. */
-export const BOOLEAN_FIELDS = new Set(['done']);
+export const BOOLEAN_FIELDS = new Set(['done', 'read']);

@@ -9,8 +9,8 @@ export default async function UsersPage() {
   if (!sc) redirect('/login');
   const { ctx, services, user } = sc;
 
-  if (user.role !== 'Admin') {
-    return <div className="card p-6 text-sm">User management is admin-only.</div>;
+  if (user.role === 'Employee') {
+    return <div className="card p-6 text-sm">People management is for managers and admins.</div>;
   }
 
   const all = await services.users.listAll(ctx);
@@ -30,10 +30,14 @@ export default async function UsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">People</h1>
-        <p className="text-sm muted">Add team members, set roles and managers, archive when they leave.</p>
+        <h1 className="text-xl font-semibold">{user.role === 'Admin' ? 'People' : 'My team'}</h1>
+        <p className="text-sm muted">
+          {user.role === 'Admin'
+            ? 'Add people, set roles and managers, archive when they leave.'
+            : 'Add team members and archive them when they leave.'}
+        </p>
       </div>
-      <UserManager users={rows} selfId={user.id} />
+      <UserManager users={rows} selfId={user.id} isAdmin={user.role === 'Admin'} />
     </div>
   );
 }

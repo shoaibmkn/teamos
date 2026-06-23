@@ -7,6 +7,7 @@ import type {
   Activity,
   DayLog,
   Evidence,
+  Notification,
   Subtask,
   Summary,
   Task,
@@ -22,6 +23,7 @@ import type {
   DayLogRepository,
   EvidenceRepository,
   ListOptions,
+  NotificationRepository,
   Page,
   Repositories,
   SubtaskRepository,
@@ -377,6 +379,35 @@ class MemoryDayLogRepository implements DayLogRepository {
   }
 }
 
+class MemoryNotificationRepository implements NotificationRepository {
+  private readonly store = new Map<string, Notification>();
+
+  async getById(id: string): Promise<Notification | null> {
+    const n = this.store.get(id);
+    return n ? clone(n) : null;
+  }
+
+  async listByUser(userId: string, limit?: number): Promise<Notification[]> {
+    const matched = [...this.store.values()]
+      .filter((n) => n.userId === userId)
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+    return (limit && limit > 0 ? matched.slice(0, limit) : matched).map(clone);
+  }
+
+  async create(notification: Notification): Promise<Notification> {
+    this.store.set(notification.id, clone(notification));
+    return clone(notification);
+  }
+
+  async update(id: string, patch: Partial<Notification>): Promise<Notification> {
+    const existing = this.store.get(id);
+    if (!existing) throw new Error(`Notification not found: ${id}`);
+    const next = { ...existing, ...patch, id: existing.id };
+    this.store.set(id, next);
+    return clone(next);
+  }
+}
+
 export function createInMemoryRepositories(): Repositories {
   return {
     users: new MemoryUserRepository(),
@@ -390,6 +421,7 @@ export function createInMemoryRepositories(): Repositories {
     subtasks: new MemorySubtaskRepository(),
     taskMessages: new MemoryTaskMessageRepository(),
     dayLogs: new MemoryDayLogRepository(),
+    notifications: new MemoryNotificationRepository(),
   };
 }
 

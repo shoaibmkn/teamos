@@ -415,3 +415,49 @@ describe('attendance: check-in / check-out', () => {
     await expect(h.services.attendance.teamToday(ctx(h.priya))).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 });
+
+describe('notifications & manager team management', () => {
+  let h: Harness;
+  beforeEach(async () => {
+    h = await setup();
+  });
+
+  it('notifies the assignee when a task is assigned (not the actor)', async () => {
+    await h.services.tasks.create(ctx(h.manager), { title: 'do it', assigneeUserId: h.priya.id });
+    const priyaNotes = await h.services.notifications.list(ctx(h.priya));
+    expect(priyaNotes.some((n) => n.type === 'task_assigned')).toBe(true);
+    expect((await h.services.notifications.list(ctx(h.manager))).length).toBe(0);
+  });
+
+  it('notifies the manager when an employee messages on a task', async () => {
+    const task = await h.services.tasks.create(ctx(h.manager), { title: 'x', assigneeUserId: h.priya.id });
+    await h.services.messages.post(ctx(h.priya), task.id, { text: 'quick question?' });
+    const mgrNotes = await h.services.notifications.list(ctx(h.manager));
+    expect(mgrNotes.some((n) => n.type === 'task_message' && n.taskId === task.id)).toBe(true);
+  });
+
+  it('marks notifications read', async () => {
+    await h.services.tasks.create(ctx(h.manager), { title: 'x', assigneeUserId: h.priya.id });
+    expect(await h.services.notifications.unreadCount(ctx(h.priya))).toBeGreaterThan(0);
+    await h.services.notifications.markAllRead(ctx(h.priya));
+    expect(await h.services.notifications.unreadCount(ctx(h.priya))).toBe(0);
+  });
+
+  it('lets a manager add an employee under themselves (role forced)', async () => {
+    const u = await h.services.users.createUser(ctx(h.manager), {
+      email: 'newhire@example.com',
+      displayName: 'New Hire',
+      role: 'Admin',
+    });
+    expect(u.role).toBe('Employee');
+    expect(u.managerUserId).toBe(h.manager.id);
+  });
+
+  it('blocks a manager from archiving another team member', async () => {
+    const otherMgr = makeUser('Manager', 'other@example.com');
+    await h.repos.users.create(otherMgr);
+    const ext = makeUser('Employee', 'ext@example.com', otherMgr.id);
+    await h.repos.users.create(ext);
+    await expect(h.services.users.archiveUser(ctx(h.manager), ext.id)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  });
+});

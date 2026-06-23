@@ -24,6 +24,7 @@ import type {
 } from '../repositories/interfaces';
 import { recordActivity } from './activity';
 import { canCreateTask } from './rbac';
+import type { NotificationService } from './notificationService';
 import { nowIso, type Clock, type RequestContext } from './context';
 import {
   assertEnum,
@@ -73,6 +74,7 @@ export class TaskService {
     private readonly users: UserRepository,
     private readonly evidence: EvidenceRepository,
     private readonly activity: ActivityRepository,
+    private readonly notifications: NotificationService,
     private readonly clock: Clock,
   ) {}
 
@@ -156,6 +158,12 @@ export class TaskService {
       { entityType: 'Task', entityId: created.id, action: 'TaskCreated', metadata: { assigneeUserId, priority } },
       this.clock,
     );
+    await this.notifications.notify(created.assigneeUserId, {
+      type: 'task_assigned',
+      title: `New task assigned: "${created.title}"`,
+      taskId: created.id,
+      actorUserId: ctx.actor.id,
+    });
     return created;
   }
 
@@ -203,6 +211,14 @@ export class TaskService {
       },
       this.clock,
     );
+    // Alert the other party (assignee <-> manager) about the change.
+    const other = ctx.actor.id === task.assigneeUserId ? task.managerUserId : task.assigneeUserId;
+    await this.notifications.notify(other, {
+      type: 'task_status',
+      title: `"${task.title}" → ${nextStatus}`,
+      taskId,
+      actorUserId: ctx.actor.id,
+    });
     return { task: updated, activity };
   }
 

@@ -15,6 +15,7 @@ import { SubtaskService } from './subtaskService';
 import { MessageService } from './messageService';
 import { AssessmentService } from './assessmentService';
 import { AttendanceService } from './attendanceService';
+import { NotificationService } from './notificationService';
 
 export interface CoreConfig {
   /** Allowed Workspace email domains. Empty = any (single-tenant local dev). */
@@ -39,15 +40,17 @@ export interface Services {
   messages: MessageService;
   assessments: AssessmentService;
   attendance: AttendanceService;
+  notifications: NotificationService;
 }
 
 export function createServices(deps: ServicesDeps): Services {
   const clock = deps.clock ?? systemClock;
   const { repos, ai, config } = deps;
+  const notifications = new NotificationService(repos.notifications, clock);
 
   return {
     users: new UserService(repos.users, config.allowedDomains, repos.activity, clock),
-    tasks: new TaskService(repos.tasks, repos.users, repos.evidence, repos.activity, clock),
+    tasks: new TaskService(repos.tasks, repos.users, repos.evidence, repos.activity, notifications, clock),
     evidence: new EvidenceService(repos.evidence, repos.tasks, repos.activity, clock),
     workflows: new WorkflowService(
       repos.workflowTemplates,
@@ -79,9 +82,10 @@ export function createServices(deps: ServicesDeps): Services {
       clock,
     ),
     subtasks: new SubtaskService(repos.subtasks, repos.tasks, repos.activity, clock),
-    messages: new MessageService(repos.taskMessages, repos.tasks, clock),
+    messages: new MessageService(repos.taskMessages, repos.tasks, notifications, clock),
     assessments: new AssessmentService(repos.tasks, repos.evidence, repos.users, clock),
     attendance: new AttendanceService(repos.dayLogs, repos.users, clock),
+    notifications,
   };
 }
 
@@ -95,3 +99,4 @@ export { SubtaskService } from './subtaskService';
 export { MessageService } from './messageService';
 export { AssessmentService, assessmentToCsv } from './assessmentService';
 export { AttendanceService } from './attendanceService';
+export { NotificationService } from './notificationService';

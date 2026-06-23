@@ -7,6 +7,7 @@ import type {
   Activity,
   DayLog,
   Evidence,
+  Notification,
   Subtask,
   Summary,
   Task,
@@ -119,6 +120,13 @@ export interface DayLogRepository {
   update(id: string, patch: Partial<DayLog>): Promise<DayLog>;
 }
 
+export interface NotificationRepository {
+  getById(id: string): Promise<Notification | null>;
+  listByUser(userId: string, limit?: number): Promise<Notification[]>;
+  create(notification: Notification): Promise<Notification>;
+  update(id: string, patch: Partial<Notification>): Promise<Notification>;
+}
+
 export interface Repositories {
   users: UserRepository;
   workflowTemplates: WorkflowTemplateRepository;
@@ -131,4 +139,5 @@ export interface Repositories {
   subtasks: SubtaskRepository;
   taskMessages: TaskMessageRepository;
   dayLogs: DayLogRepository;
+  notifications: NotificationRepository;
 }

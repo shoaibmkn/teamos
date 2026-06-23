@@ -16,7 +16,7 @@ import {
   optionalEnum,
   optionalString,
 } from './validation';
-import { canManageUsers, permissionsFor, managesUser } from './rbac';
+import { permissionsFor, managesUser } from './rbac';
 import { nowIso, type Clock, type RequestContext } from './context';
 
 export interface MeResponse {
@@ -71,10 +71,18 @@ export class UserService {
     return [ctx.actor];
   }
 
-  /** All users (Admin only) — for the user-management screen. */
+  /** Whether the actor may manage (edit/archive) the given user. */
+  private canManageTarget(actor: User, target: User): boolean {
+    if (actor.role === 'Admin') return true;
+    if (actor.role === 'Manager') return target.managerUserId === actor.id;
+    return false;
+  }
+
+  /** People the caller manages. Admin sees everyone; a manager sees their reports. */
   async listAll(ctx: RequestContext): Promise<User[]> {
-    if (!canManageUsers(ctx.actor.role)) throw forbidden('Only admins can manage users.');
-    return this.users.list();
+    if (ctx.actor.role === 'Admin') return this.users.list();
+    if (ctx.actor.role === 'Manager') return this.users.list({ managerUserId: ctx.actor.id });
+    throw forbidden('Only managers and admins can view people.');
   }
 
   async getByIdScoped(ctx: RequestContext, userId: string): Promise<User> {
@@ -85,13 +93,15 @@ export class UserService {
   }
 
   async createUser(ctx: RequestContext, input: CreateUserInput): Promise<User> {
-    if (!canManageUsers(ctx.actor.role)) throw forbidden('Only admins can create users.');
+    const isAdmin = ctx.actor.role === 'Admin';
+    if (!isAdmin && ctx.actor.role !== 'Manager') throw forbidden('Only managers and admins can add people.');
 
     const email = assertNonEmptyString(input.email, 'email').toLowerCase();
     assertAllowedDomain(email, this.allowedDomains);
     const displayName = assertNonEmptyString(input.displayName, 'displayName');
-    const role = assertEnum(input.role, Roles, 'role') as Role;
-    const managerUserId = optionalString(input.managerUserId, 'managerUserId');
+    // Managers may only add employees under themselves.
+    const role: Role = isAdmin ? (assertEnum(input.role, Roles, 'role') as Role) : 'Employee';
+    const managerUserId = isAdmin ? optionalString(input.managerUserId, 'managerUserId') : ctx.actor.id;
     const department = optionalString(input.department, 'department');
 
     if (await this.users.getByEmail(email)) throw conflict('A user with this email already exists.');
@@ -126,19 +136,23 @@ export class UserService {
   }
 
   async updateUser(ctx: RequestContext, userId: string, input: UpdateUserInput): Promise<User> {
-    if (!canManageUsers(ctx.actor.role)) throw forbidden('Only admins can update users.');
     const existing = await this.users.getById(userId);
     if (!existing) throw notFound('User not found.');
+    if (!this.canManageTarget(ctx.actor, existing)) throw forbidden('User not in your scope.');
+    const isAdmin = ctx.actor.role === 'Admin';
 
     const patch: Partial<User> = { updatedAt: nowIso(this.clock), updatedBy: ctx.actor.id };
     const displayName = optionalString(input.displayName, 'displayName');
     if (displayName) patch.displayName = displayName;
-    const role = optionalEnum(input.role, Roles, 'role') as Role | undefined;
-    if (role) patch.role = role;
-    const managerUserId = optionalString(input.managerUserId, 'managerUserId');
-    if (managerUserId !== undefined) patch.managerUserId = managerUserId;
     const department = optionalString(input.department, 'department');
     if (department !== undefined) patch.department = department;
+    // Only admins can change role or reassign manager.
+    if (isAdmin) {
+      const role = optionalEnum(input.role, Roles, 'role') as Role | undefined;
+      if (role) patch.role = role;
+      const managerUserId = optionalString(input.managerUserId, 'managerUserId');
+      if (managerUserId !== undefined) patch.managerUserId = managerUserId;
+    }
 
     const updated = await this.users.update(userId, patch);
     await recordActivity(
@@ -150,12 +164,12 @@ export class UserService {
     return updated;
   }
 
-  /** Archive (soft-remove) a user. Admin only; cannot archive self. */
+  /** Archive (soft-remove) a user. Admin anyone; manager their reports. Not self. */
   async archiveUser(ctx: RequestContext, userId: string): Promise<User> {
-    if (!canManageUsers(ctx.actor.role)) throw forbidden('Only admins can archive users.');
     if (userId === ctx.actor.id) throw conflict('You cannot archive your own account.');
     const existing = await this.users.getById(userId);
     if (!existing) throw notFound('User not found.');
+    if (!this.canManageTarget(ctx.actor, existing)) throw forbidden('User not in your scope.');
 
     const updated = await this.users.update(userId, {
       status: assertEnum('Archived', UserStatuses, 'status'),

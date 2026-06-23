@@ -15,6 +15,7 @@ export type {
   DayLogRepository,
   EvidenceRepository,
   ListOptions,
+  NotificationRepository,
   Page,
   Repositories,
   SubtaskRepository,
@@ -43,6 +44,7 @@ export {
   AssessmentService,
   assessmentToCsv,
   AttendanceService,
+  NotificationService,
   canAccessTask,
 } from './services/index';
 export type { EmployeeAssessment, MonthlyPoint } from './services/assessmentService';

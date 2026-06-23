@@ -8,6 +8,7 @@ import type {
   Activity,
   DayLog,
   Evidence,
+  Notification,
   Subtask,
   Summary,
   Task,
@@ -22,6 +23,7 @@ import type {
   DayLogRepository,
   EvidenceRepository,
   ListOptions,
+  NotificationRepository,
   Page,
   Repositories,
   SubtaskRepository,
@@ -345,6 +347,28 @@ class SheetsDayLogRepository implements DayLogRepository {
   }
 }
 
+class SheetsNotificationRepository implements NotificationRepository {
+  private t: Table<Notification>;
+  constructor(c: SheetsClient) {
+    this.t = new Table(c, 'Notifications');
+  }
+  getById(id: string) {
+    return this.t.getById(id);
+  }
+  async listByUser(userId: string, limit?: number) {
+    const matched = (await this.t.all())
+      .filter((n) => n.userId === userId)
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+    return limit && limit > 0 ? matched.slice(0, limit) : matched;
+  }
+  create(x: Notification) {
+    return this.t.create(x);
+  }
+  update(id: string, p: Partial<Notification>) {
+    return this.t.update(id, p);
+  }
+}
+
 export function createSheetsRepositories(client: SheetsClient): Repositories {
   return {
     users: new SheetsUserRepository(client),
@@ -358,5 +382,6 @@ export function createSheetsRepositories(client: SheetsClient): Repositories {
     subtasks: new SheetsSubtaskRepository(client),
     taskMessages: new SheetsTaskMessageRepository(client),
     dayLogs: new SheetsDayLogRepository(client),
+    notifications: new SheetsNotificationRepository(client),
   };
 }

@@ -3,6 +3,7 @@ import type { Role } from '@teamos/core';
 import { NavLinks, type NavItem } from './client/NavLinks';
 import { ThemeToggle } from './client/ThemeToggle';
 import { LogoutButton } from './client/LogoutButton';
+import { NotificationBell } from './client/NotificationBell';
 
 function navFor(role: Role): NavItem[] {
   const myWork: NavItem = { href: '/employee', label: 'My Work', icon: '✓' };
@@ -13,7 +14,7 @@ function navFor(role: Role): NavItem[] {
   const people: NavItem = { href: '/users', label: 'People', icon: '◐' };
 
   if (role === 'Admin') return [exec, team, myWork, workflows, assessment, people];
-  if (role === 'Manager') return [team, myWork, workflows, assessment];
+  if (role === 'Manager') return [team, myWork, workflows, assessment, people];
   return [myWork, workflows];
 }
 
@@ -57,7 +58,10 @@ export function AppShell({
             <span className="font-semibold">TeamOS</span>
           </div>
           <div className="hidden text-sm muted md:block">AI-native team operating system</div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <ThemeToggle />
+          </div>
         </header>
         <main className="flex-1 p-5">{children}</main>
       </div>

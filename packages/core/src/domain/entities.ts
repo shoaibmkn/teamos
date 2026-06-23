@@ -144,6 +144,18 @@ export interface TaskMessage {
   createdAt: IsoDateTime;
 }
 
+/** An in-app notification for one recipient. */
+export interface Notification {
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  taskId?: string;
+  actorUserId?: string;
+  read: boolean;
+  createdAt: IsoDateTime;
+}
+
 /** A daily check-in / check-out record. One per user per day. */
 export interface DayLog {
   id: string;

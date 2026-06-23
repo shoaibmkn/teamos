@@ -15,7 +15,7 @@ export interface UserRow {
   department?: string;
 }
 
-export function UserManager({ users, selfId }: { users: UserRow[]; selfId: string }) {
+export function UserManager({ users, selfId, isAdmin }: { users: UserRow[]; selfId: string; isAdmin: boolean }) {
   const router = useRouter();
   const managers = users.filter((u) => u.status === 'Active' && (u.role === 'Manager' || u.role === 'Admin'));
 
@@ -32,8 +32,11 @@ export function UserManager({ users, selfId }: { users: UserRow[]; selfId: strin
     e.preventDefault();
     setError(null);
     setPending(true);
-    const body: Record<string, unknown> = { email, displayName, role };
-    if (managerUserId) body.managerUserId = managerUserId;
+    const body: Record<string, unknown> = { email, displayName };
+    if (isAdmin) {
+      body.role = role;
+      if (managerUserId) body.managerUserId = managerUserId;
+    }
     if (department.trim()) body.department = department.trim();
     const res = await postJson('/api/users', body);
     if (res.ok) {
@@ -79,27 +82,31 @@ export function UserManager({ users, selfId }: { users: UserRow[]; selfId: strin
               <label className="mb-1 block text-xs font-medium uppercase tracking-wide muted">Name</label>
               <input className="input" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide muted">Role</label>
-              <select className="input" value={role} onChange={(e) => setRole(e.target.value as Role)}>
-                {Roles.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide muted">Manager (optional)</label>
-              <select className="input" value={managerUserId} onChange={(e) => setManagerUserId(e.target.value)}>
-                <option value="">None</option>
-                {managers.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.displayName}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {isAdmin ? (
+              <>
+                <div>
+                  <label className="mb-1 block text-xs font-medium uppercase tracking-wide muted">Role</label>
+                  <select className="input" value={role} onChange={(e) => setRole(e.target.value as Role)}>
+                    {Roles.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium uppercase tracking-wide muted">Manager (optional)</label>
+                  <select className="input" value={managerUserId} onChange={(e) => setManagerUserId(e.target.value)}>
+                    <option value="">None</option>
+                    {managers.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.displayName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            ) : null}
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium uppercase tracking-wide muted">Department (optional)</label>

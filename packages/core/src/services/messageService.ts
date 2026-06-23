@@ -6,6 +6,7 @@ import { forbidden, notFound } from '../domain/errors';
 import { newId } from '../domain/ids';
 import type { TaskMessageRepository, TaskRepository } from '../repositories/interfaces';
 import { canAccessTask } from './taskService';
+import type { NotificationService } from './notificationService';
 import { nowIso, type Clock, type RequestContext } from './context';
 import { assertNonEmptyString } from './validation';
 
@@ -13,6 +14,7 @@ export class MessageService {
   constructor(
     private readonly messages: TaskMessageRepository,
     private readonly tasks: TaskRepository,
+    private readonly notifications: NotificationService,
     private readonly clock: Clock,
   ) {}
 
@@ -29,7 +31,7 @@ export class MessageService {
   }
 
   async post(ctx: RequestContext, taskId: string, input: { text: unknown }): Promise<TaskMessage> {
-    await this.requireTaskAccess(ctx, taskId);
+    const task = await this.requireTaskAccess(ctx, taskId);
     const text = assertNonEmptyString(input.text, 'text');
     const message: TaskMessage = {
       id: newId('taskMessage'),
@@ -38,6 +40,15 @@ export class MessageService {
       text,
       createdAt: nowIso(this.clock),
     };
-    return this.messages.create(message);
+    const created = await this.messages.create(message);
+
+    // Alert the other task participants (assignee + owning manager).
+    await this.notifications.notifyMany([task.assigneeUserId, task.managerUserId], {
+      type: 'task_message',
+      title: `${ctx.actor.displayName} messaged on "${task.title}"`,
+      taskId,
+      actorUserId: ctx.actor.id,
+    });
+    return created;
   }
 }

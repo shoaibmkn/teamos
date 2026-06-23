@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+.next
+**/.next
+.git
+*.log
+coverage
+**/*.tsbuildinfo
+apps/web/public/walkthrough.html
+.env
+.env.local

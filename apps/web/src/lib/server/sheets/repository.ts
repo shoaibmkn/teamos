@@ -6,6 +6,7 @@
 import 'server-only';
 import type {
   Activity,
+  DayLog,
   Evidence,
   Subtask,
   Summary,
@@ -18,6 +19,7 @@ import type {
 } from '@teamos/core';
 import type {
   ActivityRepository,
+  DayLogRepository,
   EvidenceRepository,
   ListOptions,
   Page,
@@ -318,6 +320,31 @@ class SheetsTaskMessageRepository implements TaskMessageRepository {
   }
 }
 
+class SheetsDayLogRepository implements DayLogRepository {
+  private t: Table<DayLog>;
+  constructor(c: SheetsClient) {
+    this.t = new Table(c, 'DayLogs');
+  }
+  async getByUserAndDate(userId: string, date: string) {
+    return (await this.t.all()).find((l) => l.userId === userId && l.date === date) ?? null;
+  }
+  async listByDate(date: string) {
+    return (await this.t.all()).filter((l) => l.date === date);
+  }
+  async listByUser(userId: string, limit?: number) {
+    const matched = (await this.t.all())
+      .filter((l) => l.userId === userId)
+      .sort((a, b) => (a.date < b.date ? 1 : -1));
+    return limit && limit > 0 ? matched.slice(0, limit) : matched;
+  }
+  create(x: DayLog) {
+    return this.t.create(x);
+  }
+  update(id: string, p: Partial<DayLog>) {
+    return this.t.update(id, p);
+  }
+}
+
 export function createSheetsRepositories(client: SheetsClient): Repositories {
   return {
     users: new SheetsUserRepository(client),
@@ -330,5 +357,6 @@ export function createSheetsRepositories(client: SheetsClient): Repositories {
     summaries: new SheetsSummaryRepository(client),
     subtasks: new SheetsSubtaskRepository(client),
     taskMessages: new SheetsTaskMessageRepository(client),
+    dayLogs: new SheetsDayLogRepository(client),
   };
 }

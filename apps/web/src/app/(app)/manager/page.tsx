@@ -4,6 +4,7 @@ import { MetricCard, SectionTitle, EmptyState } from '@/components/ui';
 import { TaskList } from '@/components/TaskList';
 import { AiSummaryPanel } from '@/components/client/AiSummaryPanel';
 import { CreateTaskForm } from '@/components/client/CreateTaskForm';
+import { AttendanceStrip } from '@/components/client/AttendanceStrip';
 import { periodLastDays } from '@/components/format';
 
 export const dynamic = 'force-dynamic';
@@ -29,6 +30,8 @@ export default async function ManagerPage() {
         </div>
         <CreateTaskForm team={team} />
       </div>
+
+      <AttendanceStrip />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <MetricCard label="Team tasks" value={dash.metrics.total} hint={`${dash.team.length} people`} />

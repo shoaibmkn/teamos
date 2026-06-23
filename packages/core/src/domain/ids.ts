@@ -13,6 +13,7 @@ export const ID_PREFIXES = {
   summary: 'sum',
   subtask: 'sub',
   taskMessage: 'msg',
+  dayLog: 'day',
 } as const;
 
 /** Entity kind keys, e.g. 'user', 'task'. */

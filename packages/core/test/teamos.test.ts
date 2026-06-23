@@ -379,3 +379,39 @@ describe('task 360: subtasks & chat', () => {
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 });
+
+describe('attendance: check-in / check-out', () => {
+  let h: Harness;
+  beforeEach(async () => {
+    h = await setup();
+  });
+
+  it('checks in idempotently', async () => {
+    const first = await h.services.attendance.checkIn(ctx(h.priya), { note: 'focus on #18' });
+    const second = await h.services.attendance.checkIn(ctx(h.priya));
+    expect(second.id).toBe(first.id);
+    expect(first.checkInNote).toBe('focus on #18');
+    const today = await h.services.attendance.myToday(ctx(h.priya));
+    expect(today?.id).toBe(first.id);
+  });
+
+  it('requires check-in before check-out', async () => {
+    await expect(h.services.attendance.checkOut(ctx(h.sam))).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+  });
+
+  it('marks on-the-clock then off after checkout', async () => {
+    await h.services.attendance.checkIn(ctx(h.priya));
+    let team = await h.services.attendance.teamToday(ctx(h.manager));
+    expect(team.find((e) => e.user.id === h.priya.id)?.onClock).toBe(true);
+
+    await h.services.attendance.checkOut(ctx(h.priya), { note: 'done' });
+    team = await h.services.attendance.teamToday(ctx(h.manager));
+    const entry = team.find((e) => e.user.id === h.priya.id);
+    expect(entry?.onClock).toBe(false);
+    expect(entry?.log?.checkOutAt).toBeTruthy();
+  });
+
+  it('blocks an employee from team attendance', async () => {
+    await expect(h.services.attendance.teamToday(ctx(h.priya))).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  });
+});

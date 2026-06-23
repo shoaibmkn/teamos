@@ -13,6 +13,7 @@ export const SHEET_COLUMNS = {
   Summaries: ['id', 'scopeType', 'scopeId', 'periodStart', 'periodEnd', 'model', 'promptVersion', 'summaryText', 'riskJson', 'createdAt', 'createdBy'],
   Subtasks: ['id', 'taskId', 'title', 'done', 'order', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy'],
   TaskMessages: ['id', 'taskId', 'authorUserId', 'text', 'createdAt'],
+  DayLogs: ['id', 'userId', 'date', 'checkInAt', 'checkOutAt', 'checkInNote', 'checkOutNote', 'createdAt'],
 } as const;
 
 export type SheetName = keyof typeof SHEET_COLUMNS;

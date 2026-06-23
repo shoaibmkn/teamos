@@ -144,6 +144,18 @@ export interface TaskMessage {
   createdAt: IsoDateTime;
 }
 
+/** A daily check-in / check-out record. One per user per day. */
+export interface DayLog {
+  id: string;
+  userId: string;
+  date: IsoDate;
+  checkInAt: IsoDateTime;
+  checkOutAt?: IsoDateTime;
+  checkInNote?: string;
+  checkOutNote?: string;
+  createdAt: IsoDateTime;
+}
+
 export interface Summary {
   id: string;
   scopeType: SummaryScope;

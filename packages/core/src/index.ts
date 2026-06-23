@@ -12,6 +12,7 @@ export type { IdPrefix } from './domain/ids';
 // Repositories
 export type {
   ActivityRepository,
+  DayLogRepository,
   EvidenceRepository,
   ListOptions,
   Page,
@@ -41,9 +42,11 @@ export {
   MessageService,
   AssessmentService,
   assessmentToCsv,
+  AttendanceService,
   canAccessTask,
 } from './services/index';
 export type { EmployeeAssessment, MonthlyPoint } from './services/assessmentService';
+export type { AttendanceEntry } from './services/attendanceService';
 export type { CoreConfig, Services, ServicesDeps } from './services/index';
 export type { Clock, RequestContext } from './services/context';
 export { systemClock, nowIso, SYSTEM_ACTOR_ID } from './services/context';

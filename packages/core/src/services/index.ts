@@ -14,6 +14,7 @@ import { AiService } from './aiService';
 import { SubtaskService } from './subtaskService';
 import { MessageService } from './messageService';
 import { AssessmentService } from './assessmentService';
+import { AttendanceService } from './attendanceService';
 
 export interface CoreConfig {
   /** Allowed Workspace email domains. Empty = any (single-tenant local dev). */
@@ -37,6 +38,7 @@ export interface Services {
   subtasks: SubtaskService;
   messages: MessageService;
   assessments: AssessmentService;
+  attendance: AttendanceService;
 }
 
 export function createServices(deps: ServicesDeps): Services {
@@ -79,6 +81,7 @@ export function createServices(deps: ServicesDeps): Services {
     subtasks: new SubtaskService(repos.subtasks, repos.tasks, repos.activity, clock),
     messages: new MessageService(repos.taskMessages, repos.tasks, clock),
     assessments: new AssessmentService(repos.tasks, repos.evidence, repos.users, clock),
+    attendance: new AttendanceService(repos.dayLogs, repos.users, clock),
   };
 }
 
@@ -91,3 +94,4 @@ export { AiService } from './aiService';
 export { SubtaskService } from './subtaskService';
 export { MessageService } from './messageService';
 export { AssessmentService, assessmentToCsv } from './assessmentService';
+export { AttendanceService } from './attendanceService';

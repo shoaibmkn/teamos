@@ -5,6 +5,7 @@
 
 import type {
   Activity,
+  DayLog,
   Evidence,
   Subtask,
   Summary,
@@ -110,6 +111,14 @@ export interface TaskMessageRepository {
   create(message: TaskMessage): Promise<TaskMessage>;
 }
 
+export interface DayLogRepository {
+  getByUserAndDate(userId: string, date: string): Promise<DayLog | null>;
+  listByDate(date: string): Promise<DayLog[]>;
+  listByUser(userId: string, limit?: number): Promise<DayLog[]>;
+  create(log: DayLog): Promise<DayLog>;
+  update(id: string, patch: Partial<DayLog>): Promise<DayLog>;
+}
+
 export interface Repositories {
   users: UserRepository;
   workflowTemplates: WorkflowTemplateRepository;
@@ -121,4 +130,5 @@ export interface Repositories {
   summaries: SummaryRepository;
   subtasks: SubtaskRepository;
   taskMessages: TaskMessageRepository;
+  dayLogs: DayLogRepository;
 }

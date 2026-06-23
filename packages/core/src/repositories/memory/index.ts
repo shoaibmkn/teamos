@@ -5,6 +5,7 @@
 
 import type {
   Activity,
+  DayLog,
   Evidence,
   Subtask,
   Summary,
@@ -18,6 +19,7 @@ import type {
 import type { EntityType, InstanceStatus, SummaryScope, TaskStatus } from '../../domain/enums';
 import type {
   ActivityRepository,
+  DayLogRepository,
   EvidenceRepository,
   ListOptions,
   Page,
@@ -342,6 +344,39 @@ class MemoryTaskMessageRepository implements TaskMessageRepository {
   }
 }
 
+class MemoryDayLogRepository implements DayLogRepository {
+  private readonly store = new Map<string, DayLog>();
+
+  async getByUserAndDate(userId: string, date: string): Promise<DayLog | null> {
+    for (const l of this.store.values()) if (l.userId === userId && l.date === date) return clone(l);
+    return null;
+  }
+
+  async listByDate(date: string): Promise<DayLog[]> {
+    return [...this.store.values()].filter((l) => l.date === date).map(clone);
+  }
+
+  async listByUser(userId: string, limit?: number): Promise<DayLog[]> {
+    const matched = [...this.store.values()]
+      .filter((l) => l.userId === userId)
+      .sort((a, b) => (a.date < b.date ? 1 : -1));
+    return (limit && limit > 0 ? matched.slice(0, limit) : matched).map(clone);
+  }
+
+  async create(log: DayLog): Promise<DayLog> {
+    this.store.set(log.id, clone(log));
+    return clone(log);
+  }
+
+  async update(id: string, patch: Partial<DayLog>): Promise<DayLog> {
+    const existing = this.store.get(id);
+    if (!existing) throw new Error(`DayLog not found: ${id}`);
+    const next = { ...existing, ...patch, id: existing.id };
+    this.store.set(id, next);
+    return clone(next);
+  }
+}
+
 export function createInMemoryRepositories(): Repositories {
   return {
     users: new MemoryUserRepository(),
@@ -354,6 +389,7 @@ export function createInMemoryRepositories(): Repositories {
     summaries: new MemorySummaryRepository(),
     subtasks: new MemorySubtaskRepository(),
     taskMessages: new MemoryTaskMessageRepository(),
+    dayLogs: new MemoryDayLogRepository(),
   };
 }
 

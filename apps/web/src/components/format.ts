@@ -126,6 +126,13 @@ export function isOverdueIso(iso: string | undefined, terminal: boolean): boolea
   return new Date(iso).getTime() < Date.now();
 }
 
+export function fmtTime(iso?: string): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
+
 export function periodLastDays(days: number): { start: string; end: string } {
   const end = new Date();
   const start = new Date(end.getTime() - days * 86400000);

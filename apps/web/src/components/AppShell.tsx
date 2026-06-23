@@ -9,10 +9,11 @@ function navFor(role: Role): NavItem[] {
   const team: NavItem = { href: '/manager', label: 'Team', icon: '◫' };
   const exec: NavItem = { href: '/executive', label: 'Executive', icon: '▲' };
   const workflows: NavItem = { href: '/workflows', label: 'Workflows', icon: '⇄' };
+  const assessment: NavItem = { href: '/assessment', label: 'Assessment', icon: '◈' };
   const people: NavItem = { href: '/users', label: 'People', icon: '◐' };
 
-  if (role === 'Admin') return [exec, team, myWork, workflows, people];
-  if (role === 'Manager') return [team, myWork, workflows];
+  if (role === 'Admin') return [exec, team, myWork, workflows, assessment, people];
+  if (role === 'Manager') return [team, myWork, workflows, assessment];
   return [myWork, workflows];
 }
 

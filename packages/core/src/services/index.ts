@@ -13,6 +13,7 @@ import { DashboardService } from './dashboardService';
 import { AiService } from './aiService';
 import { SubtaskService } from './subtaskService';
 import { MessageService } from './messageService';
+import { AssessmentService } from './assessmentService';
 
 export interface CoreConfig {
   /** Allowed Workspace email domains. Empty = any (single-tenant local dev). */
@@ -35,6 +36,7 @@ export interface Services {
   ai: AiService;
   subtasks: SubtaskService;
   messages: MessageService;
+  assessments: AssessmentService;
 }
 
 export function createServices(deps: ServicesDeps): Services {
@@ -76,6 +78,7 @@ export function createServices(deps: ServicesDeps): Services {
     ),
     subtasks: new SubtaskService(repos.subtasks, repos.tasks, repos.activity, clock),
     messages: new MessageService(repos.taskMessages, repos.tasks, clock),
+    assessments: new AssessmentService(repos.tasks, repos.evidence, repos.users, clock),
   };
 }
 
@@ -87,3 +90,4 @@ export { DashboardService } from './dashboardService';
 export { AiService } from './aiService';
 export { SubtaskService } from './subtaskService';
 export { MessageService } from './messageService';
+export { AssessmentService, assessmentToCsv } from './assessmentService';

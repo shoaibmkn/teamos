@@ -39,8 +39,11 @@ export {
   AiService,
   SubtaskService,
   MessageService,
+  AssessmentService,
+  assessmentToCsv,
   canAccessTask,
 } from './services/index';
+export type { EmployeeAssessment, MonthlyPoint } from './services/assessmentService';
 export type { CoreConfig, Services, ServicesDeps } from './services/index';
 export type { Clock, RequestContext } from './services/context';
 export { systemClock, nowIso, SYSTEM_ACTOR_ID } from './services/context';

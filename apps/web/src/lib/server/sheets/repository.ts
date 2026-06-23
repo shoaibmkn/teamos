@@ -7,8 +7,10 @@ import 'server-only';
 import type {
   Activity,
   Evidence,
+  Subtask,
   Summary,
   Task,
+  TaskMessage,
   User,
   WorkflowInstance,
   WorkflowStage,
@@ -20,15 +22,17 @@ import type {
   ListOptions,
   Page,
   Repositories,
+  SubtaskRepository,
   SummaryRepository,
   TaskFilter,
+  TaskMessageRepository,
   TaskRepository,
   UserRepository,
   WorkflowInstanceRepository,
   WorkflowStageRepository,
   WorkflowTemplateRepository,
 } from '@teamos/core';
-import { SHEET_COLUMNS, NUMERIC_FIELDS, type SheetName } from './schema';
+import { SHEET_COLUMNS, NUMERIC_FIELDS, BOOLEAN_FIELDS, type SheetName } from './schema';
 import type { SheetsClient } from './client';
 
 type Row = (string | number)[];
@@ -39,7 +43,9 @@ function rowToObj<T>(tab: SheetName, row: string[]): T {
   headers.forEach((h, c) => {
     const raw = row[c];
     if (raw === undefined || raw === '') return;
-    obj[h] = NUMERIC_FIELDS.has(h) ? Number(raw) : raw;
+    if (NUMERIC_FIELDS.has(h)) obj[h] = Number(raw);
+    else if (BOOLEAN_FIELDS.has(h)) obj[h] = raw === 'true' || raw === 'TRUE';
+    else obj[h] = raw;
   });
   return obj as T;
 }
@@ -278,6 +284,40 @@ class SheetsSummaryRepository implements SummaryRepository {
   }
 }
 
+class SheetsSubtaskRepository implements SubtaskRepository {
+  private t: Table<Subtask>;
+  constructor(c: SheetsClient) {
+    this.t = new Table(c, 'Subtasks');
+  }
+  getById(id: string) {
+    return this.t.getById(id);
+  }
+  async listByTask(taskId: string) {
+    return (await this.t.all()).filter((s) => s.taskId === taskId).sort((a, b) => a.order - b.order);
+  }
+  create(x: Subtask) {
+    return this.t.create(x);
+  }
+  update(id: string, p: Partial<Subtask>) {
+    return this.t.update(id, p);
+  }
+}
+
+class SheetsTaskMessageRepository implements TaskMessageRepository {
+  private t: Table<TaskMessage>;
+  constructor(c: SheetsClient) {
+    this.t = new Table(c, 'TaskMessages');
+  }
+  async listByTask(taskId: string) {
+    return (await this.t.all())
+      .filter((m) => m.taskId === taskId)
+      .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
+  }
+  create(x: TaskMessage) {
+    return this.t.create(x);
+  }
+}
+
 export function createSheetsRepositories(client: SheetsClient): Repositories {
   return {
     users: new SheetsUserRepository(client),
@@ -288,5 +328,7 @@ export function createSheetsRepositories(client: SheetsClient): Repositories {
     evidence: new SheetsEvidenceRepository(client),
     activity: new SheetsActivityRepository(client),
     summaries: new SheetsSummaryRepository(client),
+    subtasks: new SheetsSubtaskRepository(client),
+    taskMessages: new SheetsTaskMessageRepository(client),
   };
 }

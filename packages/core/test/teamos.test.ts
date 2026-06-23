@@ -332,3 +332,50 @@ describe('workflows & dashboards', () => {
     expect(dash.metrics.total).toBe(1);
   });
 });
+
+describe('task 360: subtasks & chat', () => {
+  let h: Harness;
+  beforeEach(async () => {
+    h = await setup();
+  });
+
+  async function priyaTask() {
+    return h.services.tasks.create(ctx(h.manager), { title: 'with subtasks', assigneeUserId: h.priya.id });
+  }
+
+  it('adds and toggles checklist items', async () => {
+    const task = await priyaTask();
+    const a = await h.services.subtasks.add(ctx(h.priya), task.id, { title: 'step one' });
+    await h.services.subtasks.add(ctx(h.priya), task.id, { title: 'step two' });
+    expect(a.order).toBe(1);
+    expect(a.done).toBe(false);
+
+    await h.services.subtasks.setDone(ctx(h.priya), task.id, a.id, true);
+    const list = await h.services.subtasks.list(ctx(h.priya), task.id);
+    expect(list.length).toBe(2);
+    expect(list.filter((s) => s.done).length).toBe(1);
+  });
+
+  it('blocks an employee from another employee task checklist', async () => {
+    const task = await priyaTask();
+    await expect(
+      h.services.subtasks.add(ctx(h.sam), task.id, { title: 'sneaky' }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  });
+
+  it('posts and lists task chat messages', async () => {
+    const task = await priyaTask();
+    await h.services.messages.post(ctx(h.manager), task.id, { text: 'Any update?' });
+    await h.services.messages.post(ctx(h.priya), task.id, { text: 'Almost done.' });
+    const msgs = await h.services.messages.list(ctx(h.priya), task.id);
+    expect(msgs.map((m) => m.text)).toEqual(['Any update?', 'Almost done.']);
+    expect(msgs[0]!.authorUserId).toBe(h.manager.id);
+  });
+
+  it('blocks chat access outside task scope', async () => {
+    const task = await priyaTask();
+    await expect(
+      h.services.messages.post(ctx(h.sam), task.id, { text: 'hi' }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  });
+});

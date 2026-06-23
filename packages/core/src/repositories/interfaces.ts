@@ -6,8 +6,10 @@
 import type {
   Activity,
   Evidence,
+  Subtask,
   Summary,
   Task,
+  TaskMessage,
   User,
   WorkflowInstance,
   WorkflowStage,
@@ -95,6 +97,19 @@ export interface SummaryRepository {
   create(summary: Summary): Promise<Summary>;
 }
 
+export interface SubtaskRepository {
+  getById(id: string): Promise<Subtask | null>;
+  listByTask(taskId: string): Promise<Subtask[]>;
+  create(subtask: Subtask): Promise<Subtask>;
+  update(id: string, patch: Partial<Subtask>): Promise<Subtask>;
+}
+
+/** Task chat is append-only: create + read only. */
+export interface TaskMessageRepository {
+  listByTask(taskId: string): Promise<TaskMessage[]>;
+  create(message: TaskMessage): Promise<TaskMessage>;
+}
+
 export interface Repositories {
   users: UserRepository;
   workflowTemplates: WorkflowTemplateRepository;
@@ -104,4 +119,6 @@ export interface Repositories {
   evidence: EvidenceRepository;
   activity: ActivityRepository;
   summaries: SummaryRepository;
+  subtasks: SubtaskRepository;
+  taskMessages: TaskMessageRepository;
 }

@@ -11,6 +11,8 @@ export const ID_PREFIXES = {
   activity: 'act',
   evidence: 'evd',
   summary: 'sum',
+  subtask: 'sub',
+  taskMessage: 'msg',
 } as const;
 
 /** Entity kind keys, e.g. 'user', 'task'. */

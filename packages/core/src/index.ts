@@ -16,8 +16,10 @@ export type {
   ListOptions,
   Page,
   Repositories,
+  SubtaskRepository,
   SummaryRepository,
   TaskFilter,
+  TaskMessageRepository,
   TaskRepository,
   UserRepository,
   WorkflowInstanceRepository,
@@ -35,6 +37,8 @@ export {
   WorkflowService,
   DashboardService,
   AiService,
+  SubtaskService,
+  MessageService,
   canAccessTask,
 } from './services/index';
 export type { CoreConfig, Services, ServicesDeps } from './services/index';

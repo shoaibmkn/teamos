@@ -6,8 +6,10 @@
 import type {
   Activity,
   Evidence,
+  Subtask,
   Summary,
   Task,
+  TaskMessage,
   User,
   WorkflowInstance,
   WorkflowStage,
@@ -20,8 +22,10 @@ import type {
   ListOptions,
   Page,
   Repositories,
+  SubtaskRepository,
   SummaryRepository,
   TaskFilter,
+  TaskMessageRepository,
   TaskRepository,
   UserRepository,
   WorkflowInstanceRepository,
@@ -293,6 +297,51 @@ class MemorySummaryRepository implements SummaryRepository {
   }
 }
 
+class MemorySubtaskRepository implements SubtaskRepository {
+  private readonly store = new Map<string, Subtask>();
+
+  async getById(id: string): Promise<Subtask | null> {
+    const s = this.store.get(id);
+    return s ? clone(s) : null;
+  }
+
+  async listByTask(taskId: string): Promise<Subtask[]> {
+    return [...this.store.values()]
+      .filter((s) => s.taskId === taskId)
+      .sort((a, b) => a.order - b.order)
+      .map(clone);
+  }
+
+  async create(subtask: Subtask): Promise<Subtask> {
+    this.store.set(subtask.id, clone(subtask));
+    return clone(subtask);
+  }
+
+  async update(id: string, patch: Partial<Subtask>): Promise<Subtask> {
+    const existing = this.store.get(id);
+    if (!existing) throw new Error(`Subtask not found: ${id}`);
+    const next = { ...existing, ...patch, id: existing.id };
+    this.store.set(id, next);
+    return clone(next);
+  }
+}
+
+class MemoryTaskMessageRepository implements TaskMessageRepository {
+  private readonly log: TaskMessage[] = [];
+
+  async listByTask(taskId: string): Promise<TaskMessage[]> {
+    return this.log
+      .filter((m) => m.taskId === taskId)
+      .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1))
+      .map(clone);
+  }
+
+  async create(message: TaskMessage): Promise<TaskMessage> {
+    this.log.push(clone(message));
+    return clone(message);
+  }
+}
+
 export function createInMemoryRepositories(): Repositories {
   return {
     users: new MemoryUserRepository(),
@@ -303,6 +352,8 @@ export function createInMemoryRepositories(): Repositories {
     evidence: new MemoryEvidenceRepository(),
     activity: new MemoryActivityRepository(),
     summaries: new MemorySummaryRepository(),
+    subtasks: new MemorySubtaskRepository(),
+    taskMessages: new MemoryTaskMessageRepository(),
   };
 }
 

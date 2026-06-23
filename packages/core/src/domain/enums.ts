@@ -68,6 +68,8 @@ export const EntityTypes = [
   'Task',
   'Evidence',
   'Summary',
+  'Subtask',
+  'TaskMessage',
 ] as const;
 export type EntityType = (typeof EntityTypes)[number];
 

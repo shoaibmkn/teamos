@@ -122,6 +122,28 @@ export interface Activity {
   requestId: string;
 }
 
+/** A checklist item under a task. */
+export interface Subtask {
+  id: string;
+  taskId: string;
+  title: string;
+  done: boolean;
+  order: number;
+  createdAt: IsoDateTime;
+  createdBy: string;
+  updatedAt: IsoDateTime;
+  updatedBy: string;
+}
+
+/** A message in a task's chat thread. Append-only. */
+export interface TaskMessage {
+  id: string;
+  taskId: string;
+  authorUserId: string;
+  text: string;
+  createdAt: IsoDateTime;
+}
+
 export interface Summary {
   id: string;
   scopeType: SummaryScope;

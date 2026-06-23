@@ -11,6 +11,8 @@ import { EvidenceService } from './evidenceService';
 import { WorkflowService } from './workflowService';
 import { DashboardService } from './dashboardService';
 import { AiService } from './aiService';
+import { SubtaskService } from './subtaskService';
+import { MessageService } from './messageService';
 
 export interface CoreConfig {
   /** Allowed Workspace email domains. Empty = any (single-tenant local dev). */
@@ -31,6 +33,8 @@ export interface Services {
   workflows: WorkflowService;
   dashboards: DashboardService;
   ai: AiService;
+  subtasks: SubtaskService;
+  messages: MessageService;
 }
 
 export function createServices(deps: ServicesDeps): Services {
@@ -70,6 +74,8 @@ export function createServices(deps: ServicesDeps): Services {
       repos.activity,
       clock,
     ),
+    subtasks: new SubtaskService(repos.subtasks, repos.tasks, repos.activity, clock),
+    messages: new MessageService(repos.taskMessages, repos.tasks, clock),
   };
 }
 
@@ -79,3 +85,5 @@ export { EvidenceService } from './evidenceService';
 export { WorkflowService } from './workflowService';
 export { DashboardService } from './dashboardService';
 export { AiService } from './aiService';
+export { SubtaskService } from './subtaskService';
+export { MessageService } from './messageService';

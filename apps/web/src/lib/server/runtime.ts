@@ -11,6 +11,7 @@ import {
   OfflineAiProvider,
   createInMemoryRepositories,
   createServices,
+  newId,
   seedDemoOrg,
   type AiProvider,
   type Repositories,
@@ -19,13 +20,33 @@ import {
 } from '@teamos/core';
 import { SheetsClient, sheetsConfigFromEnv } from './sheets/client';
 import { createSheetsRepositories } from './sheets/repository';
+import { createFileRepositories } from './file/repository';
 
 export interface TeamOsRuntime {
   services: Services;
   repos: Repositories;
   org?: SeededOrg;
   aiMode: 'gemini' | 'offline';
-  backend: 'sheets' | 'memory';
+  backend: 'sheets' | 'memory' | 'file';
+}
+
+async function seedAdminIfEmpty(repos: Repositories): Promise<void> {
+  const email = process.env.TEAMOS_ADMIN_EMAIL?.trim().toLowerCase();
+  if (!email) return;
+  if ((await repos.users.list()).length > 0) return;
+  const now = new Date().toISOString();
+  await repos.users.create({
+    id: newId('user'),
+    email,
+    displayName: email.split('@')[0] ?? 'Admin',
+    role: 'Admin',
+    status: 'Active',
+    department: 'Operations',
+    createdAt: now,
+    createdBy: 'system',
+    updatedAt: now,
+    updatedBy: 'system',
+  });
 }
 
 declare global {
@@ -59,6 +80,13 @@ async function build(): Promise<TeamOsRuntime> {
     }
     const repos = createSheetsRepositories(new SheetsClient(cfg));
     return { services: createServices({ repos, ai, config }), repos, aiMode: mode, backend: 'sheets' };
+  }
+
+  if (process.env.TEAMOS_DATA_BACKEND === 'file') {
+    const path = process.env.TEAMOS_DATA_FILE || '/data/teamos.json';
+    const repos = await createFileRepositories(path);
+    await seedAdminIfEmpty(repos);
+    return { services: createServices({ repos, ai, config }), repos, aiMode: mode, backend: 'file' };
   }
 
   const repos = createInMemoryRepositories();

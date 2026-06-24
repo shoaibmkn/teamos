@@ -71,7 +71,7 @@ function selectAi(): { ai: AiProvider; mode: 'gemini' | 'offline' } {
 
 async function build(): Promise<TeamOsRuntime> {
   const { ai, mode } = selectAi();
-  const config = { allowedDomains: allowedDomains() };
+  const config = { allowedDomains: allowedDomains(), timezone: process.env.TEAMOS_TIMEZONE || 'UTC' };
 
   if (process.env.TEAMOS_DATA_BACKEND === 'sheets') {
     const cfg = sheetsConfigFromEnv();

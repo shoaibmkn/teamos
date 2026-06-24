@@ -23,10 +23,21 @@ export class AttendanceService {
     private readonly dayLogs: DayLogRepository,
     private readonly users: UserRepository,
     private readonly clock: Clock,
+    private readonly timezone?: string,
   ) {}
 
+  /** Local calendar date (YYYY-MM-DD) in the configured timezone. */
   private today(): string {
-    return this.clock().toISOString().slice(0, 10);
+    try {
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: this.timezone || 'UTC',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(this.clock());
+    } catch {
+      return this.clock().toISOString().slice(0, 10);
+    }
   }
 
   async myToday(ctx: RequestContext): Promise<DayLog | null> {

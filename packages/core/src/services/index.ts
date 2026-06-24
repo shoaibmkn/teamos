@@ -20,6 +20,8 @@ import { NotificationService } from './notificationService';
 export interface CoreConfig {
   /** Allowed Workspace email domains. Empty = any (single-tenant local dev). */
   allowedDomains: string[];
+  /** IANA timezone for day-boundary logic (check-in dates). Defaults to UTC. */
+  timezone?: string;
 }
 
 export interface ServicesDeps {
@@ -84,7 +86,7 @@ export function createServices(deps: ServicesDeps): Services {
     subtasks: new SubtaskService(repos.subtasks, repos.tasks, repos.activity, clock),
     messages: new MessageService(repos.taskMessages, repos.tasks, notifications, clock),
     assessments: new AssessmentService(repos.tasks, repos.evidence, repos.users, clock),
-    attendance: new AttendanceService(repos.dayLogs, repos.users, clock),
+    attendance: new AttendanceService(repos.dayLogs, repos.users, clock, config.timezone),
     notifications,
   };
 }
